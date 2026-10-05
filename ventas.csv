@@ -1,0 +1,15 @@
+producto,categoria,precio,cantidad
+Laptop,Cómputo,15000,2
+Mouse,Cómputo,250,10
+Teclado,Cómputo,600,6
+Monitor,Cómputo,3500,3
+Silla ergonómica,Oficina,1800,4
+Escritorio,Oficina,3200,2
+Lámpara de escritorio,Oficina,450,5
+Audífonos,Audio,900,7
+Bocina Bluetooth,Audio,1200,3
+Micrófono,Audio,1500,2
+Cuaderno,Papelería,45,30
+Bolígrafos (paquete),Papelería,60,25
+Mochila,Accesorios,700,5
+Funda para laptop,Accesorios,350,8
