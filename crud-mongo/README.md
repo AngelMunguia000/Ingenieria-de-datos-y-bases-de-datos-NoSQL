@@ -1,18 +1,21 @@
-# CRUD en MongoDB desde Python
+# Operaciones CRUD en MongoDB con Python
 
-Práctica de Optativa III: Ciencia de Datos, UNE Plantel Centro.
-Script en Python que modela una colección documental de productos y realiza las cuatro operaciones CRUD más una agregación por categoría.
+Práctica de la asignatura Optativa III: Ciencia de Datos, UNE Plantel Centro.
 
-Autor: Angel David Munguía Zúñiga
+El script modela una colección documental de productos, ejecuta las cuatro operaciones CRUD y realiza una agregación por categoría.
 
-## Archivos
+**Autor:** Angel David Munguía Zúñiga
+
+## Contenido del proyecto
 
 | Archivo | Descripción |
 |---|---|
 | `crud_mongo.py` | Script con la conexión, las cuatro operaciones CRUD y la agregación |
-| `requirements.txt` | Librerías que se instalan con pip |
+| `requirements.txt` | Dependencias del proyecto |
 
-## Cómo ejecutarlo
+## Requisitos e instalación
+
+Se requiere Python 3.10 o superior.
 
 ```bash
 python -m venv venv
@@ -23,25 +26,25 @@ python crud_mongo.py
 
 ## Conexión a MongoDB
 
-Se usa la Opción B de la guía: `mongomock`, que simula MongoDB en memoria con la misma sintaxis de `pymongo` y no necesita servidor.
+La práctica utiliza la Opción B de la guía del curso: la librería `mongomock`, que simula un servidor MongoDB en memoria y expone la misma interfaz que `pymongo`, por lo que no requiere instalar ni configurar un servidor.
 
 ```python
 import mongomock
 client = mongomock.MongoClient()
 ```
 
-Para correrlo contra un MongoDB real solo cambian esas dos líneas, el resto del script queda igual:
+Para ejecutar el script contra un servidor real basta con sustituir esas dos líneas; el resto del código no cambia.
 
 ```python
 from pymongo import MongoClient
-client = MongoClient("mongodb://localhost:27017/")  # o la cadena de MongoDB Atlas
+client = MongoClient("mongodb://localhost:27017/")  # o la cadena de conexión de MongoDB Atlas
 ```
 
-Después se elige la base `tienda` y la colección `productos`. MongoDB las crea solas al insertar el primer documento, no hay que definir tablas ni columnas antes.
+Una vez establecida la conexión, se selecciona la base de datos `tienda` y la colección `productos`. MongoDB crea ambas de forma automática al insertar el primer documento, sin necesidad de definir un esquema previo.
 
-## Modelo de la colección
+## Modelo de datos
 
-Cada producto es un documento tipo JSON. Todos tienen `nombre`, `categoria`, `precio` y `stock`, pero cada uno puede llevar campos propios:
+Cada producto se almacena como un documento con estructura similar a JSON. Todos los documentos comparten los campos `nombre`, `categoria`, `precio` y `stock`, y cada uno puede incluir atributos propios.
 
 ```json
 {
@@ -54,25 +57,32 @@ Cada producto es un documento tipo JSON. Todos tienen `nombre`, `categoria`, `pr
 }
 ```
 
-La Laptop tiene `specs`, la Silla tiene `color` y el Escritorio tiene `medidas_cm`. En una tabla relacional eso serían columnas vacías en casi todas las filas, aquí cada documento guarda solo lo que le corresponde.
+Por ejemplo, la Laptop incluye el subdocumento `specs`, la Silla incluye `color` y el Escritorio incluye `medidas_cm`. En un modelo relacional estos atributos se traducirían en columnas vacías para la mayoría de los registros; en el modelo documental cada documento almacena únicamente los campos que le corresponden.
 
-## Operaciones
+## Operaciones implementadas
 
 ### CREATE
-`insert_many` inserta seis productos de una sola vez. Antes se ejecuta `delete_many({})` para que el script se pueda correr varias veces sin duplicar datos.
+
+El método `insert_many` inserta seis documentos en una sola operación. Previamente se ejecuta `delete_many({})` para vaciar la colección, de modo que el script pueda ejecutarse varias veces sin duplicar datos.
 
 ### READ
-- `find({"categoria": "Computo", "precio": {"$gt": 200}})` trae los productos de Cómputo con precio mayor a 200, ordenados del más caro al más barato. `$gt` es el operador "mayor que".
-- `find({"tags": "accesorio"})` busca dentro del arreglo `tags`. El segundo parámetro es la proyección, que deja solo `nombre` y `precio`.
+
+Se realizan dos consultas:
+
+- `find({"categoria": "Computo", "precio": {"$gt": 200}})` obtiene los productos de la categoría Cómputo cuyo precio es mayor a 200, ordenados de mayor a menor precio. El operador `$gt` significa "mayor que".
+- `find({"tags": "accesorio"})` busca un valor dentro del arreglo `tags`. El segundo argumento es la proyección, que limita el resultado a los campos `nombre` y `precio`.
 
 ### UPDATE
-`update_one` con `$set` cambia el precio del Mouse de 250 a 300 sin tocar los demás campos del documento.
+
+El método `update_one` con el operador `$set` modifica el precio del Mouse de 250 a 300 sin alterar los demás campos del documento.
 
 ### DELETE
-`delete_one` borra el documento de la Silla, quedan cinco productos.
+
+El método `delete_one` elimina el documento correspondiente a la Silla, con lo que la colección queda con cinco productos.
 
 ### Agregación
-`aggregate` con `$group` agrupa por `categoria` y calcula la suma de precios y el número de productos de cada grupo. Es el equivalente a esta consulta SQL:
+
+El método `aggregate` con la etapa `$group` agrupa los documentos por `categoria` y calcula, para cada grupo, la suma de precios y el número de productos. La etapa `$sort` ordena el resultado de mayor a menor. La operación equivale a la siguiente consulta SQL:
 
 ```sql
 SELECT categoria, SUM(precio) AS total, COUNT(*) AS n
@@ -81,7 +91,7 @@ GROUP BY categoria
 ORDER BY total DESC
 ```
 
-## Salida del programa
+## Resultado de la ejecución
 
 ```
 CREATE - documentos insertados: 6
