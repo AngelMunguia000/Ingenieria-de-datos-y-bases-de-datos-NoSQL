@@ -1,33 +1,53 @@
-# ETL de ventas
+# Ingeniería de datos y bases de datos NoSQL
 
-practica de la semana 6 de ciencia de datos. hice un pipeline que lee un csv de ventas, le agrega una columna nueva y lo guarda en una base sqlite con esquema estrella
+Prácticas de la asignatura Optativa III: Ciencia de Datos, UNE Plantel Centro.
 
-## como correrlo
+**Autor:** Angel David Munguía Zúñiga
+
+## Contenido del repositorio
+
+| Práctica | Ubicación | Descripción |
+|---|---|---|
+| Pipeline ETL de ventas | Raíz del repositorio | Pipeline que carga un archivo CSV en una base de datos SQLite con esquema estrella |
+| Operaciones CRUD en MongoDB | [`crud-mongo/`](crud-mongo/) | Modelado de una colección documental, operaciones CRUD y agregación |
+
+---
+
+# Pipeline ETL de ventas
+
+Práctica de la Semana 6. El script `etl.py` implementa un pipeline ETL que extrae las ventas de un archivo CSV, genera una columna calculada, modela los datos en un esquema estrella y los carga en una base de datos SQLite.
+
+## Ejecución
 
 ```
 pip install pandas
 python etl.py
 ```
 
-el archivo almacen.db no lo subi por que se crea solo al correr el script
+El archivo `almacen.db` no se incluye en el repositorio porque el script lo genera en cada ejecución.
 
-## extract
+## Fases del pipeline
 
-leo ventas.csv con pandas y me quedan 14 filas con producto, categoria, precio y cantidad
+### Extracción (Extract)
 
-## transform
+Se lee el archivo `ventas.csv` con pandas. El resultado es un conjunto de 14 registros con las columnas `producto`, `categoria`, `precio` y `cantidad`.
 
-saque la columna total multiplicando precio por cantidad. depsues separe las categorias que no se repiten en otra tabla y a cada una le puse un cat_id, y en las ventas cambie el nombre de la categoira por ese numero
+### Transformación (Transform)
 
-## load
+Se calcula la columna `total` como el producto de `precio` por `cantidad`. Posteriormente, las categorías distintas se separan en una tabla independiente, a cada una se le asigna un identificador `cat_id` y, en la tabla de ventas, el nombre de la categoría se sustituye por dicho identificador.
 
-las dos tablas se guardan en almacen.db con to_sql. le puse replace para que no se dupliquen los datos si lo corro otra ves
+### Carga (Load)
 
-## esquema estrella
+Las dos tablas se almacenan en `almacen.db` mediante el método `to_sql`. Se utiliza la opción `replace` para evitar que los datos se dupliquen cuando el script se ejecuta más de una vez.
 
-fact_ventas es la tabla de hechos, cada fila es una venta con su precio, cantidad, total y el cat_id. dim_categoria es la dimension y solo tiene el cat_id con el nombre de la categoria. asi el nombre se guarda una sola ves y para sacar los ingresos por categoria nada mas ahi que hacer un join
+## Esquema estrella
 
-## consulta final
+- **Tabla de hechos `fact_ventas`:** cada fila representa una venta, con sus métricas `precio`, `cantidad` y `total`, y la clave `cat_id`.
+- **Dimensión `dim_categoria`:** contiene el identificador `cat_id` y el nombre de la categoría.
+
+Con este diseño, el nombre de cada categoría se almacena una sola vez y el cálculo de ingresos por categoría requiere únicamente una operación JOIN entre ambas tablas.
+
+## Consulta de verificación
 
 ```sql
 SELECT d.categoria, COUNT(*) AS num_ventas, SUM(f.total) AS ingresos
@@ -37,7 +57,9 @@ GROUP BY d.categoria
 ORDER BY ingresos DESC
 ```
 
-esto sale al correr el script, computo es la que mas ingresos tiene
+## Resultado de la ejecución
+
+La salida del script muestra que la categoría Cómputo es la que genera mayores ingresos.
 
 ```
 Extraídas 14 filas
